@@ -14,10 +14,10 @@
 static void ye(t_philosophers *philo)
 {
 	sem_wait(philo->sim->forks);
-	printer(philo->sim, philo->id, "1.catali aldi");
+	printer(philo->sim, philo->thread_id, "1.catali aldi");
 	sem_wait(philo->sim->forks);
-	printer(philo->sim, philo->id, "2.catali aldi");
-	printer(philo->sim, philo->id, "yemek yiyor");
+	printer(philo->sim, philo->thread_id, "2.catali aldi");
+	printer(philo->sim, philo->thread_id, "yemek yiyor");
 	philo->last_eat = get_time();
 	philo->eat_count++;
 	f_wait(philo->sim->philosophers_eat_time);
@@ -31,39 +31,45 @@ static void *eat(void *philo)
 	bool status;
 	status = true;
 	phil = (t_philosophers *)philo;
+
 	if (phil->id % 2 != 0)
 		usleep(1000);
+	pthread_create(&phil->a, NULL, dead, phil);
 	while (phil->sim->died == false && status)
 	{
 		ye(phil);
 		if(phil->sim->all_eat)
 			status = false;
-		printer(phil->sim, phil->id, "uyuyor");
+		printer(phil->sim, phil->thread_id, "uyuyor");
 		f_wait(phil->sim->philosophers_sleep_time);
-		printer(phil->sim, phil->id, "düşünüyor");
+		printer(phil->sim, phil->thread_id, "düşünüyor");
 	}
-	return (NULL);
+	exit(0);
 }
 
-static void	dead(t_simstatus *sim, t_philosophers *philo)
+void	*dead(void *data)
 {
 	int	i;
-	
-	while (!sim->eat && !sim->died)
+	t_philosophers *philo;
+
+	philo = (t_philosophers *)data;
+	while (!philo->sim->eat && !philo->sim->died)
 	{
 		i = -1;
-		while (++i < sim->philosophers_cont && !sim->died)
+		while (++i < philo->sim->philosophers_cont && !philo->sim->died)
 		{
-			if(get_time() - philo[i].last_eat > sim->philosophers_kill_time)
+			if(get_time() - philo[i].last_eat > philo->sim->philosophers_kill_time)
 			{
 				printer(philo->sim, philo->id, "öldü");
-				sim->died = true;
+				philo->sim->died = true;
+				exit(1);
 			}
 			usleep(100);
-			if(sim->philosophers_eat_cont != -1 && sim->philosopher[0].eat_count >= sim->philosophers_eat_cont)
-				sim->all_eat = true;
+			if(philo->sim->philosophers_eat_cont != -1 && philo->sim->philosopher[0].eat_count >= philo->sim->philosophers_eat_cont)
+				philo->sim->all_eat = true;
 		}
 	}
+	return (NULL);
 }
 
 void	simi(t_simstatus *sim)
@@ -83,5 +89,5 @@ void	simi(t_simstatus *sim)
 			eat(philo);
 		i++;
 	}
-	dead(sim, philo);
+	end_sim(sim);
 }

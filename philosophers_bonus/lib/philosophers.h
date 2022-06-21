@@ -24,6 +24,7 @@
 # include	<fcntl.h>
 # include	<sys/stat.h>
 # include	<sys/wait.h>
+# include	<signal.h>
 
 typedef struct s_philosophers
 {
@@ -33,7 +34,8 @@ typedef struct s_philosophers
 	pid_t		thread_id;
 	bool		kill;
 	struct s_simstatus *sim;
-}	t_philosophers;
+	pthread_t a;
+} t_philosophers;
 
 typedef struct s_simstatus
 {
@@ -57,4 +59,6 @@ void f_wait(long long time);
 void printer(t_simstatus *sim, int id, char *msg);
 void simi(t_simstatus *sim);
 void init(t_simstatus *sim, char **data);
+void end_sim(t_simstatus *sim);
+void *dead(void *data);
 #endif

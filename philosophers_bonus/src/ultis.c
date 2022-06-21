@@ -13,13 +13,13 @@
 
 void	printer(t_simstatus *sim, int id, char *msg)
 {
-	sem_wait(sim->forks);
+	sem_wait(sim->printfstatus);
 	if (!sim->died)
 	{
 		printf("ms : %lli ", get_time() - sim->start_time);
 		printf(" ps : %i %s\n", id, msg);
 	}
-	sem_post(sim->forks);
+	sem_post(sim->printfstatus);
 }
 
 void f_wait(long long time)
@@ -38,17 +38,25 @@ void f_wait(long long time)
 
 void end_sim(t_simstatus *sim)
 {
-	int	i;
+	int exit_satatus;
+	int i;
 
+	exit_satatus = 0;
 	i = -1;
-	while (++i < sim->philosophers_cont)
-		pthread_join(sim->philosopher->thread_id, NULL);
-	i = -1;
-	while (++i < sim->philosophers_cont)
-		pthread_mutex_destroy(&sim->forks[i]);
-	free (sim->forks);
-	free (sim->philosopher);
-	pthread_mutex_destroy(&sim->printfstatus);
+	while (1)
+	{
+		waitpid(-1, &exit_satatus, 0);
+		if(exit_satatus != 0)
+		{
+			i = -1;
+			while (++i < sim->philosophers_cont)
+				kill(sim->philosopher[i].thread_id, SIGKILL);
+		}
+	}
+	sem_close(sim->forks);
+	sem_close(sim->printfstatus);
+	sem_unlink("./printf_status");
+	sem_unlink("./sem");
 }
 
 int	ft_atoi(char *str)
@@ -86,4 +94,3 @@ long long	get_time(void)
 	gettimeofday(&time, NULL);
 	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
 }
-//SONLANDIRMA YAPILMADI :) BUNLARA BAK
