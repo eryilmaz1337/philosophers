@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 all:
-	@gcc ./src/* -Wall -Wextra -Werror -o ./philosophers
+	@gcc ./src/* -Wall -Wextra -Werror -o ./philosophers -g
 	@echo "DERLENDİ :)"
 
 clean:

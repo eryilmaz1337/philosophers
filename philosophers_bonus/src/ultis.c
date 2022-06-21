@@ -30,9 +30,9 @@ void f_wait(long long time)
 	t = get_time();
 	while (status)
 	{
-		usleep(32);
 		if (get_time() - t >= time)
 			status = false;
+		usleep(32);
 	}
 }
 

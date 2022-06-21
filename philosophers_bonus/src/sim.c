@@ -14,10 +14,10 @@
 static void ye(t_philosophers *philo)
 {
 	sem_wait(philo->sim->forks);
-	printer(philo->sim, philo->thread_id, "1.catali aldi");
+	printer(philo->sim, philo->id, "1.catali aldi");
 	sem_wait(philo->sim->forks);
-	printer(philo->sim, philo->thread_id, "2.catali aldi");
-	printer(philo->sim, philo->thread_id, "yemek yiyor");
+	printer(philo->sim, philo->id, "2.catali aldi");
+	printer(philo->sim, philo->id, "yemek yiyor");
 	philo->last_eat = get_time();
 	philo->eat_count++;
 	f_wait(philo->sim->philosophers_eat_time);
@@ -31,7 +31,6 @@ static void *eat(void *philo)
 	bool status;
 	status = true;
 	phil = (t_philosophers *)philo;
-
 	if (phil->id % 2 != 0)
 		usleep(1000);
 	pthread_create(&phil->a, NULL, dead, phil);
@@ -40,9 +39,9 @@ static void *eat(void *philo)
 		ye(phil);
 		if(phil->sim->all_eat)
 			status = false;
-		printer(phil->sim, phil->thread_id, "uyuyor");
+		printer(phil->sim, phil->id, "uyuyor");
 		f_wait(phil->sim->philosophers_sleep_time);
-		printer(phil->sim, phil->thread_id, "düşünüyor");
+		printer(phil->sim, phil->id, "düşünüyor");
 	}
 	exit(0);
 }
@@ -58,16 +57,18 @@ void	*dead(void *data)
 		i = -1;
 		while (++i < philo->sim->philosophers_cont && !philo->sim->died)
 		{
-			if(get_time() - philo[i].last_eat > philo->sim->philosophers_kill_time)
+			//printf("lsst : %lldid:%d\n", philo->last_eat, philo->id);
+			//printf("last eat : %lld\nkill : %d\ni : %i\n", philo[i].last_eat ,  philo->sim->philosophers_kill_time,i);
+			if(get_time() - philo->last_eat > philo->sim->philosophers_kill_time)
 			{
 				printer(philo->sim, philo->id, "öldü");
 				philo->sim->died = true;
 				exit(1);
 			}
-			usleep(100);
-			if(philo->sim->philosophers_eat_cont != -1 && philo->sim->philosopher[0].eat_count >= philo->sim->philosophers_eat_cont)
+			if(philo->sim->philosophers_eat_cont != -1 && philo->sim->philosopher->eat_count >= philo->sim->philosophers_eat_cont)
 				philo->sim->all_eat = true;
 		}
+		usleep(50);
 	}
 	return (NULL);
 }
@@ -86,7 +87,7 @@ void	simi(t_simstatus *sim)
 		if(philo->thread_id<0)
 			exit(1);
 		if(philo->thread_id == 0)
-			eat(philo);
+			eat(&philo[i]);
 		i++;
 	}
 	end_sim(sim);

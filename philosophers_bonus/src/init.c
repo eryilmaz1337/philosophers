@@ -15,14 +15,13 @@ static void	init_sem(t_simstatus *sim)
 {
 	sem_unlink("./printf_status");
 	sem_unlink("./sem");
-	sim->printfstatus=sem_open("./printf_status",O_CREAT, S_IRWXG, 1);
-	sim->forks=sem_open("./sem",O_CREAT, S_IRWXG, sim->philosophers_cont);
-	if( !sim->printfstatus || !sim->forks)
+	sim->printfstatus = sem_open("./printf_status",O_CREAT, S_IRWXG, 1);
+	sim->forks = sem_open("./sem",O_CREAT, S_IRWXG, sim->philosophers_cont);
+	if(!sim->printfstatus || !sim->forks)
 	{
 		printf("!!!hata oluştu!!! semafor hatası");
 		exit(1);
 	}
-
 }
 
 static void	init_philosophers(t_simstatus *sim)
@@ -48,7 +47,7 @@ void	init(t_simstatus *sim, char **data)
 	sim->all_eat = false;
 	sim->died = false;
 	if (data[5])
-		sim->philosophers_eat_cont= ft_atoi(data[5]);
+		sim->philosophers_eat_cont = ft_atoi(data[5]);
 	else
 		sim->philosophers_eat_cont = -1;
 	if (sim->philosophers_cont <= 0 || sim->philosophers_kill_time <= 0
@@ -57,7 +56,6 @@ void	init(t_simstatus *sim, char **data)
 		printf("Girdin Parametreleri Kontrol Ediniz");
 		exit(1);
 	}
-	sim->forks = malloc(sizeof(pthread_mutex_t) * sim->philosophers_cont);
 	sim->philosopher = malloc(sizeof(t_philosophers) * sim->philosophers_cont);
 	init_sem(sim);
 	init_philosophers(sim);
